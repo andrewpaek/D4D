@@ -5,12 +5,16 @@
 <link rel="stylesheet" href="testing1.css" type="text/css" />
 <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
 <script type="text/javascript" src="testing1.js"> </script>
-<script type="text/javascript" src="testing1.js"> </script>
+<script type="text/javascript" src="dist/shp.js"> </script>
 </head>
 
 <body>
 <div id="map"> 
-<script></script>
+<script src="dist/shp.min.js"> </script>
+<script>shp("http://localhost:8000/Communities.zip").then(function(data){
+	geo.addData(data);
+});
+</script>
 </div>
 </body>
 
