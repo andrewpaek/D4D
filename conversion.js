@@ -262,59 +262,9 @@
         return;
     }
     
-    /*
-    * LatLonToUTMXY
-    *
-    * Converts a latitude/longitude pair to x and y coordinates in the
-    * Universal Transverse Mercator projection.
-    *
-    * Inputs:
-    *   lat - Latitude of the point, in radians.
-    *   lon - Longitude of the point, in radians.
-    *   zone - UTM zone to be used for calculating values for x and y.
-    *          If zone is less than 1 or greater than 60, the routine
-    *          will determine the appropriate zone from the value of lon.
-    *
-    * Outputs:
-    *   xy - A 2-element array where the UTM x and y values will be stored.
-    *
-    * Returns:
-    *   The UTM zone used for calculating the values of x and y.
-    *
-    */
-    function LatLonToUTMXY (lat, lon, zone, xy)
-    {
-        MapLatLonToXY (lat, lon, UTMCentralMeridian (zone), xy);
-
-        /* Adjust easting and northing for UTM system. */
-        xy[0] = xy[0] * UTMScaleFactor + 500000.0;
-        xy[1] = xy[1] * UTMScaleFactor;
-        if (xy[1] < 0.0)
-            xy[1] = xy[1] + 10000000.0;
-
-        return zone;
-    }
+    
     
     /*
-    * btnToUTM_OnClick
-    *
-    * Called when the btnToUTM button is clicked.
-    *
-    */
-    var toUTM = function (lat, lon)
-    {
-        var xy = new Array(2);
-        
-        // Compute the UTM zone.
-        zone = Math.floor ((lon + 180.0) / 6) + 1;
-
-        zone = LatLonToUTMXY (DegToRad (lat), DegToRad (lon), zone, xy);
-
-
-        return true;
-    };
-
- /*
     * MapXYToLatLon
     *
     * Converts x and y coordinates in the Transverse Mercator projection to
@@ -345,7 +295,7 @@
     *   to optimize computations.
     *
     */
-function MapXYToLatLon (x, y, lambda0, philambda)
+    function MapXYToLatLon (x, y, lambda0, philambda)
     {
         var phif, Nf, Nfpow, nuf2, ep2, tf, tf2, tf4, cf;
         var x1frac, x2frac, x3frac, x4frac, x5frac, x6frac, x7frac, x8frac;
@@ -430,14 +380,46 @@ function MapXYToLatLon (x, y, lambda0, philambda)
         	
         return;
     }
+
+
+
+
     /*
-    * btnToGeographic_OnClick
+    * LatLonToUTMXY
     *
-    * Called when the btnToGeographic button is clicked.
+    * Converts a latitude/longitude pair to x and y coordinates in the
+    * Universal Transverse Mercator projection.
+    *
+    * Inputs:
+    *   lat - Latitude of the point, in radians.
+    *   lon - Longitude of the point, in radians.
+    *   zone - UTM zone to be used for calculating values for x and y.
+    *          If zone is less than 1 or greater than 60, the routine
+    *          will determine the appropriate zone from the value of lon.
+    *
+    * Outputs:
+    *   xy - A 2-element array where the UTM x and y values will be stored.
+    *
+    * Returns:
+    *   The UTM zone used for calculating the values of x and y.
     *
     */
+    function LatLonToUTMXY (lat, lon, zone, xy)
+    {
+        MapLatLonToXY (lat, lon, UTMCentralMeridian (zone), xy);
 
-        /*
+        /* Adjust easting and northing for UTM system. */
+        xy[0] = xy[0] * UTMScaleFactor + 500000.0;
+        xy[1] = xy[1] * UTMScaleFactor;
+        if (xy[1] < 0.0)
+            xy[1] = xy[1] + 10000000.0;
+
+        return zone;
+    }
+    
+    
+    
+    /*
     * UTMXYToLatLon
     *
     * Converts x and y coordinates in the Universal Transverse Mercator
@@ -458,7 +440,7 @@ function MapXYToLatLon (x, y, lambda0, philambda)
     *	The function does not return a value.
     *
     */
-function UTMXYToLatLon (x, y, zone, southhemi, latlon)
+    function UTMXYToLatLon (x, y, zone, southhemi, latlon)
     {
         var cmeridian;
         	
@@ -476,65 +458,117 @@ function UTMXYToLatLon (x, y, zone, southhemi, latlon)
         	
         return;
     }
+    
 
-var toGeographic = function (x, y, zone)
-    {                                  
-        latlon = new Array(2);
-        var southhemi = false;
 
-        UTMXYToLatLon (x, y, zone, southhemi, latlon);
-        console.log(latlon)
 
-        return latlon;
+    /*
+    * btnToUTM_OnClick
+    *
+    * Called when the btnToUTM button is clicked.
+    *
+    */
+    function btnToUTM_OnClick ()
+    {
+        var xy = new Array(2);
+        
+        if (isNaN (parseFloat (document.frmConverter.txtLongitude.value))) {
+            alert ("Please enter a valid longitude in the lon field.");
+            return false;
+        }
+
+        lon = parseFloat (document.frmConverter.txtLongitude.value);
+
+        if ((lon < -180.0) || (180.0 <= lon)) {
+            alert ("The longitude you entered is out of range.  " +
+                   "Please enter a number in the range [-180, 180).");
+            return false;
+        }
+
+        if (isNaN (parseFloat (document.frmConverter.txtLatitude.value))) {
+            alert ("Please enter a valid latitude in the lat field.");
+            return false;
+        }
+
+        lat = parseFloat (document.frmConverter.txtLatitude.value);
+
+        if ((lat < -90.0) || (90.0 < lat)) {
+            alert ("The latitude you entered is out of range.  " +
+                   "Please enter a number in the range [-90, 90].");
+            return false;
+        }
+
+        // Compute the UTM zone.
+        zone = Math.floor ((lon + 180.0) / 6) + 1;
+
+        zone = LatLonToUTMXY (DegToRad (lat), DegToRad (lon), zone, xy);
+
+        /* Set the output controls.  */
+        document.frmConverter.txtX.value = xy[0];
+        document.frmConverter.txtY.value = xy[1];
+        document.frmConverter.txtZone.value = zone;
+        if (lat < 0)
+            // Set the S button.
+            document.frmConverter.rbtnHemisphere[1].checked = true;
+        else
+            // Set the N button.
+            document.frmConverter.rbtnHemisphere[0].checked = true;
+        
+
+        return true;
     }
 
 
+    /*
+    * btnToGeographic_OnClick
+    *
+    * Called when the btnToGeographic button is clicked.
+    *
+    */
+    function btnToGeographic_OnClick ()
+    {                                  
+        latlon = new Array(2);
+        var x, y, zone, southhemi;
+        
+        if (isNaN (parseFloat (document.frmConverter.txtX.value))) {
+            alert ("Please enter a valid easting in the x field.");
+            return false;
+        }
+
+        x = parseFloat (document.frmConverter.txtX.value);
+
+        if (isNaN (parseFloat (document.frmConverter.txtY.value))) {
+            alert ("Please enter a valid northing in the y field.");
+            return false;
+        }
+
+        y = parseFloat (document.frmConverter.txtY.value);
+
+        if (isNaN (parseInt (document.frmConverter.txtZone.value))) {
+            alert ("Please enter a valid UTM zone in the zone field.");
+            return false;
+        }
+
+        zone = parseFloat (document.frmConverter.txtZone.value);
+
+        if ((zone < 1) || (60 < zone)) {
+            alert ("The UTM zone you entered is out of range.  " +
+                   "Please enter a number in the range [1, 60].");
+            return false;
+        }
+        
+        if (document.frmConverter.rbtnHemisphere[1].checked == true)
+            southhemi = true;
+        else
+            southhemi = false;
+
+        UTMXYToLatLon (x, y, zone, southhemi, latlon);
+        
+        document.frmConverter.txtLongitude.value = RadToDeg (latlon[1]);
+        document.frmConverter.txtLatitude.value = RadToDeg (latlon[0]);
+
+        return true;
+    }
 
     //    -->
 
-var init = function() {
-	var map = L.map('map').setView([6.206090498573886,-9.95361328125], 13);
-	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    maxZoom: 18,
-    id: 'apaek.p4jidhph',
-    accessToken: 'pk.eyJ1IjoiYXBhZWsiLCJhIjoiY2lqb3RvbGdlMDB3aHRobTV6Z2s3N2RpNCJ9.D6XsPSxFP1S-cU00dP7n1w'
-	}).addTo(map);  
-	var geojsonMarkerOptions = {
-	    radius: 8,
-	    fillColor: "#ff7800",
-	    color: "#000",
-	    weight: 1,
-	    opacity: 1,
-	    fillOpacity: 0.8
-	};
-	/*
-	var geojsonFeature = {
-    "type": "Feature",
-    "properties": {
-        "name": "Coors Field",
-        "amenity": "Baseball Stadium",
-        "popupContent": "This is where the Rockies play!"
-    },
-    "geometry": {
-        "type": "Point",
-        "coordinates": [-104.99404, 39.75621]
-    }
-	};
-	L.geoJson(geojsonFeature).addTo(map); 
-	*/
-	var mylayer=L.geoJson().addTo(map);
-	$.getJSON("communities.geojson", function(json){
-		console.log((json.features).length);
-		towns = json.features
-		for (i=0; i<towns.length; i++) {
-			utm=towns[i].geometry.coordinates;
-			console.log(utm[1])
-			latlon=toGeographic(utm[0], utm[1], 29.0);
-			towns[i].geometry.coordinates=latlon;
-			mylayer.addData(towns[i]);
-		};
-	});
-	};
-
-	
