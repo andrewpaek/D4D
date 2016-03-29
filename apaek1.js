@@ -14,7 +14,7 @@ var init = function() {
 	    opacity: 1,
 	    fillOpacity: 0.8
 	};
-	var communities_layer=L.geoJson();
+	var communities_layer=L.geoJson(false, {onEachFeature: onEachFeature});
 	$.getJSON("communities.geojson", function(json){
 		towns = json.features;
 		communities_layer.addData(towns);
@@ -43,8 +43,8 @@ var init = function() {
 	var map = L.map('map',{
 		center: [6.206090498573886,-9.95361328125],
 		zoom: 10,
-		layers: [world_map, communities_layer]
-	});
+		layers: [world_map, communities_layer
+]	});
 	var baselayers = {
 		"world_map": world_map
 	};
@@ -59,3 +59,6 @@ var init = function() {
 };
 
 	
+var onEachFeature = function(feature, layer) {
+	layer.bindPopup("Town: "+feature.properties.town_name);
+}
